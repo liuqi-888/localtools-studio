@@ -1,0 +1,82 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #0F172A;
+  background: #FFFFFF;
+  line-height: 1.65;
+}
+.container { max-width: 920px; margin: 0 auto; padding: 48px 24px 80px; }
+nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #E2E8F0;
+  margin-bottom: 48px;
+}
+.brand { font-size: 18px; font-weight: 800; color: #0F172A; text-decoration: none; }
+.nav-links { display: flex; gap: 20px; font-size: 14px; }
+.nav-links a { color: #475569; text-decoration: none; font-weight: 500; }
+.nav-links a:hover { color: #0F766E; }
+h1 { font-size: clamp(32px, 4.5vw, 44px); font-weight: 800; line-height: 1.18; letter-spacing: -0.02em; margin-bottom: 16px; }
+h2 { font-size: 22px; font-weight: 700; margin: 32px 0 12px; color: #0F172A; }
+h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+p { color: #334155; margin-bottom: 14px; max-width: 68ch; }
+.subtitle { font-size: 18px; color: #475569; max-width: 60ch; margin-bottom: 36px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin: 32px 0 48px; }
+.card {
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 28px;
+  background: #F8FAFC;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.tag {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  color: #115E59;
+  background: #CCFBF1;
+  padding: 3px 10px;
+  border-radius: 999px;
+  margin-bottom: 14px;
+}
+.price { font-size: 26px; font-weight: 800; color: #0F172A; margin: 14px 0 4px; }
+.price span { font-size: 13.5px; font-weight: 500; color: #64748B; }
+ul { margin: 12px 0 20px 18px; color: #334155; font-size: 14.5px; }
+li { margin-bottom: 6px; }
+.btn {
+  display: inline-block;
+  text-align: center;
+  background: #0F766E;
+  color: #FFFFFF;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14.5px;
+  padding: 11px 18px;
+  border-radius: 9px;
+}
+.btn:hover { background: #115E59; }
+footer {
+  margin-top: 64px;
+  padding-top: 24px;
+  border-top: 1px solid #E2E8F0;
+  font-size: 13.5px;
+  color: #64748B;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+}
+footer a { color: #475569; text-decoration: none; margin-right: 16px; }
+footer a:hover { text-decoration: underline; }
+.note-box {
+  background: #F8FAFC;
+  border-left: 3px solid #0F766E;
+  padding: 14px 18px;
+  margin: 20px 0;
+  font-size: 14.5px;
+  color: #334155;
+}
