@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Checkout — LocalTools Studio Pro</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
+  <style>
+    .checkout-box {
+      max-width: 580px;
+      margin: 24px auto;
+      border: 1px solid #E2E8F0;
+      border-radius: 16px;
+      padding: 32px;
+      background: #F8FAFC;
+    }
+    .key-display {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      background: #FFFFFF;
+      border: 2px solid #0F766E;
+      color: #0F172A;
+      padding: 16px;
+      border-radius: 10px;
+      text-align: center;
+      margin: 16px 0;
+      user-select: all;
+    }
+    .btn-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+    .btn-secondary {
+      display: inline-block;
+      background: #FFFFFF;
+      color: #0F172A;
+      border: 1px solid #CBD5E1;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14.5px;
+      padding: 11px 18px;
+      border-radius: 9px;
+      cursor: pointer;
+    }
+    .hidden { display: none; }
+    .status-pill {
+      display: inline-block;
+      background: #CCFBF1;
+      color: #115E59;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <a href="index.html" class="brand">LocalTools Studio</a>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="privacy.html">Privacy Policy</a>
+        <a href="terms.html">Terms</a>
+        <a href="refund.html">Refund Policy</a>
+      </div>
+    </nav>
+
+    <div class="checkout-box" id="buyBox">
+      <span class="status-pill">One-Time Lifetime License</span>
+      <h2 id="prodName" style="margin-top:0;">Loading product...</h2>
+      <p id="prodDesc"></p>
+      <div class="price" id="prodPrice"></div>
+      <div class="btn-row">
+        <button id="btnPay" class="btn" style="border:none;cursor:pointer;">Proceed to Secure Checkout</button>
+        <a href="index.html" class="btn-secondary">Back to Products</a>
+      </div>
+      <p style="font-size:12.5px;color:#64748B;margin-top:16px;">
+        Payments and global taxes are securely processed by Paddle. Covered by our <a href="refund.html">14-day refund policy</a>.
+      </p>
+    </div>
+
+    <div class="checkout-box hidden" id="successBox">
+      <span class="status-pill">Payment Confirmed</span>
+      <h2 style="margin-top:0;">Your Lifetime Pro License Key</h2>
+      <p>Copy the key below and paste it inside the extension popup to unlock all Pro features permanently:</p>
+      <div class="key-display" id="licenseKeyOut"></div>
+      <div class="btn-row">
+        <button id="btnCopyKey" class="btn" style="border:none;cursor:pointer;">Copy License Key</button>
+        <a id="storeLink" href="https://chromewebstore.google.com/detail/ggpjgbghoeeickloflodbbmbcoddagmi" target="_blank" rel="noopener noreferrer" class="btn-secondary">Open Chrome Web Store</a>
+      </div>
+      <p style="font-size:13px;color:#475569;margin-top:18px;">
+        <strong>Order Reference:</strong> <span id="txnOut"></span><br/>
+        Save this key for your records. Need help? Email <strong>wzdhxcb679@gmail.com</strong> with your Paddle receipt.
+      </p>
+    </div>
+
+    <footer>
+      <div>© 2026 LocalTools Studio. All rights reserved.</div>
+      <div>
+        <a href="privacy.html">Privacy Policy</a>
+        <a href="terms.html">Terms of Service</a>
+        <a href="refund.html">Refund Policy</a>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    
+const KEY_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+function fnv1a32(str) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return h >>> 0;
+}
+
+function encodeBase32(num, len) {
+  let out = "";
+  let n = num >>> 0;
+  for (let i = 0; i < len; i++) {
+    out = KEY_ALPHABET[n % 32] + out;
+    n = Math.floor(n / 32);
+  }
+  return out;
+}
+
+function computeChecksum(prefix, p1, p2, salt) {
+  const hash = fnv1a32(`${prefix}:${p1}:${p2}:${salt}`);
+  return encodeBase32(hash, 4);
+}
+
+function generateLicenseCode(prefix, seedStr, salt) {
+  const h1 = fnv1a32(`${seedStr}:A:${salt}`);
+  const h2 = fnv1a32(`${seedStr}:B:${salt}`);
+  const p1 = encodeBase32(h1, 4);
+  const p2 = encodeBase32(h2, 4);
+  const chk = computeChecksum(prefix, p1, p2, salt);
+  return `${prefix}-${p1}-${p2}-${chk}`;
+}
+
+function verifyLicenseCode(rawKey, expectedPrefix, salt) {
+  const cleaned = String(rawKey || "").trim().toUpperCase();
+  const re = new RegExp(`^${expectedPrefix}-([A-Z2-9]{4})-([A-Z2-9]{4})-([A-Z2-9]{4})$`);
+  const m = cleaned.match(re);
+  if (!m) return false;
+  const [, p1, p2, chk] = m;
+  return computeChecksum(expectedPrefix, p1, p2, salt) === chk;
+}
+
+
+    const PRODUCTS = {
+      snapfull: {
+        name: "SnapFull Pro (Lifetime)",
+        desc: "Unlock offline privacy mosaic blur, arrows, highlight boxes, text notes, instant crop & smart multi-page A4 PDF export forever.",
+        priceLabel: "$14.99",
+        priceId: "pri_01m8e9qd7bdwzmerhn06fmng7t",
+        prefix: "SF",
+        salt: "LT_SF_2026_V1",
+        storeUrl: "https://chromewebstore.google.com/detail/ggpjgbghoeeickloflodbbmbcoddagmi"
+      },
+      tablesnap: {
+        name: "TableSnap Pro (Lifetime)",
+        desc: "Unlock native Excel (.xlsx) export, multi-table multi-sheet workbooks, auto column widths & numeric/currency cleaning forever.",
+        priceLabel: "$12.99",
+        priceId: "pri_01m8e9se8fd30qr9v8b56gcahy",
+        prefix: "TS",
+        salt: "LT_TS_2026_V1",
+        storeUrl: "https://chromewebstore.google.com/detail/apemhiljibgfmbhcdapepfpjflfklclo"
+      }
+    };
+
+    const params = new URLSearchParams(window.location.search);
+    const key = (params.get("product") || "snapfull").toLowerCase();
+    const product = PRODUCTS[key] || PRODUCTS.snapfull;
+
+    document.getElementById("prodName").textContent = product.name;
+    document.getElementById("prodDesc").textContent = product.desc;
+    document.getElementById("prodPrice").innerHTML = `${product.priceLabel} <span>one-time payment · no subscription</span>`;
+    document.getElementById("storeLink").href = product.storeUrl;
+
+    function openCheckout() {
+      Paddle.Checkout.open({
+        items: [{ priceId: product.priceId, quantity: 1 }]
+      });
+    }
+
+    Paddle.Initialize({
+      token: "live_ee44f6b2c4be98a1628207dc81f",
+      eventCallback: function(event) {
+        if (event && event.name === "checkout.completed") {
+          const txnId = (event.data && event.data.transaction_id) || ("TXN-" + Date.now());
+          const code = generateLicenseCode(product.prefix, txnId, product.salt);
+          document.getElementById("licenseKeyOut").textContent = code;
+          document.getElementById("txnOut").textContent = txnId;
+          document.getElementById("buyBox").classList.add("hidden");
+          document.getElementById("successBox").classList.remove("hidden");
+          Paddle.Checkout.close();
+        }
+      }
+    });
+
+    document.getElementById("btnPay").addEventListener("click", openCheckout);
+    document.getElementById("btnCopyKey").addEventListener("click", async () => {
+      const code = document.getElementById("licenseKeyOut").textContent;
+      await navigator.clipboard.writeText(code);
+      document.getElementById("btnCopyKey").textContent = "Copied!";
+    });
+
+    // Auto-open Paddle checkout when arriving from extension with ?auto=1
+    if (params.get("auto") === "1") {
+      setTimeout(openCheckout, 350);
+    }
+  </script>
+</body>
+</html>
